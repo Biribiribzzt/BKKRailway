@@ -105,8 +105,56 @@ BKKRailway/
 └── README.md                   # This file.
 ```
 
-This `README.md` provides a clear and professional overview of your project, making it easy for others (or your future self) to understand its purpose, design, and usage.
+## Complexity Analysis
 
-<!--
-[PROMPT_SUGGESTION]Create an API endpoint in Java to expose the shortest path, cost, and time.[/PROMPT_SUGGESTION]
-[PROMPT_SUGGESTION]How can I improve the efficiency of the `SortedPQ` by using a binary heap?[/PROMPT_SUGGESTION]
+This section outlines the time complexity of key operations and data structures within the BKK Railway Pathfinding System.
+
+### `main.java` Methods
+
+*   **`loadConnections(String connectionPATH)`**:
+    *   **Time Complexity**: `O(L)`, where `L` is the number of lines in the `connections.csv` file.
+    *   **Explanation**: The method iterates through each line of the CSV. Operations like string parsing, `HashMap` lookups (`stations.get`, `stations.put`), and `AdjacencyMapGraph` insertions (`insertVertex`, `insertEdge`) are all `O(1)` on average.
+
+*   **`findShortestPath(String startStationName, String endStationName)`**:
+    *   **Time Complexity**: `O(V^2 + E(V+E+M))` in the worst case, where `V` is the number of vertices (stations), `E` is the number of edges (connections), and `M` is the number of maintenance stations. For a sparse graph like a railway network where `E` is typically proportional to `V`, this simplifies to approximately `O(V^2 + VM)`.
+    *   **Explanation**: This method implements Dijkstra's algorithm.
+        *   **Initialization**: `O(V)` for setting initial distances.
+        *   **Main Loop**: The `while (!pq.isEmpty())` loop runs `V` times (each vertex is extracted once).
+            *   `pq.removeMin()`: `O(1)` for the custom `SortedPQ`.
+            *   **Edge Relaxation**: For each vertex `u` extracted, its outgoing edges are processed. The total number of edge relaxations across all `V` iterations is `O(E)`.
+                *   `railwayGraph.opposite(u, e)`: In the current `AdjacencyMapGraph` implementation, this operation requires iterating through the graph to find the endpoints of edge `e`, leading to a worst-case complexity of `O(V + E)`.
+                *   `dist.get()`, `dist.put()`, `predecessor.put()`: `O(1)` on average for `HashMap`.
+                *   `MatainanceList.contains()`: `O(M)` for `ArrayList.contains()`.
+                *   `pq.insert()`: `O(V)` for the custom `SortedPQ` due to the linear scan required to maintain sorted order in the underlying `DoublyLinkedList`.
+    *   **Note**: A standard Dijkstra implementation with a binary heap would achieve `O(E log V)` or `O(E + V log V)`. The custom `SortedPQ` and `AdjacencyMapGraph`'s `opposite` method contribute to the higher complexity here.
+
+*   **`reconstructPath(Map<Vertex<String>, Vertex<String>> predecessor, ...)`**:
+    *   **Time Complexity**: `O(P)`, where `P` is the length of the shortest path (at most `V`).
+    *   **Explanation**: The method traces back the path from the end vertex to the start vertex using the `predecessor` map. Each `predecessor.get()` is `O(1)` on average.
+
+*   **`Totalcost(List<Vertex<String>> path)`**:
+    *   **Time Complexity**: `O(P)`, where `P` is the length of the path.
+    *   **Explanation**: The method iterates through the path once to identify line segments and then iterates through the segments to calculate the cost. `railwayGraph.getEdge()` is `O(1)` on average.
+
+*   **`Totaltime(List<Vertex<String>> path)`**:
+    *   **Time Complexity**: `O(P)`, where `P` is the length of the path.
+    *   **Explanation**: The method iterates through the path once, summing up the time costs for each edge. `railwayGraph.getEdge()` is `O(1)` on average.
+
+### Data Structure Specific Complexities
+
+*   **`AdjacencyMapGraph`**:
+    *   **`insertVertex`, `insertEdge`, `getEdge`, `outDegree`, `outgoingEdges`**: `O(1)` on average, assuming efficient `HashMap` operations.
+    *   **`endVertices`, `opposite`, `inDegree`, `incomingEdges`, `removeVertex`, `removeEdge`**: `O(V + E)` in the worst case. These operations may require iterating through all adjacency lists to find specific edges or incident vertices, as the `Edge` objects do not directly store references to their endpoints.
+
+*   **`DoublyLinkedList`**:
+    *   **`addFirst`, `addLast`, `removeFirst`, `removeLast`**: `O(1)`.
+    *   **`addbetween`, `get`**: `O(N)` where `N` is the size of the list, as these operations require traversing the list from the head or tail to reach the specified index.
+    *   **`remove(Node)`**: `O(1)` if a direct reference to the node to be removed is available.
+
+*   **`SortedPQ`**:
+    *   **`insert(key, value)`**: `O(N)` where `N` is the number of elements currently in the priority queue. This is due to the linear scan required to find the correct insertion point in the underlying `DoublyLinkedList` to maintain sorted order.
+    *   **`removeMin()`**: `O(1)`, as it simply removes the head element of the `DoublyLinkedList`.
+    *   **`min()`**: `O(1)`.
+
+The choice of `DoublyLinkedList` for `SortedPQ` and the current implementation of `AdjacencyMapGraph` methods like `opposite` lead to a higher overall time complexity for Dijkstra's algorithm compared to implementations using more optimized data structures (e.g., binary heaps for priority queues and graph representations where edges directly reference their endpoints).
+```
