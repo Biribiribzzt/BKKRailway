@@ -11,12 +11,12 @@ import java.util.Objects;
 
 public class main {
 
-    private GraphADT<String, String> railwayGraph;
-    private Map<String, Vertex<String>> stations;
+    private GraphADT<String, String> railwayGraph; // GraphADT of this map
+    private Map<String, Vertex<String>> stations; //MapADT for Dijkstra to detect the passed station
     private int stationtime = 3; //second
     private int interchangetime = 10; //second
     private int promotioncost = 20; //baht
-    private List<String> MatainanceList = new ArrayList<>();
+    public List<String> MatainanceList = new ArrayList<>(); //The list of station that currently unavaliable
 
     public main() {
         // Initialize as an undirected graph
@@ -24,9 +24,16 @@ public class main {
         this.stations = new HashMap<>();
     }
 
+    public void addMaintenanceList(List<String> station){
+        MatainanceList.addAll(station);
+    }
+
+    public void removeMaintenanceList(String station){
+        MatainanceList.remove(station);
+    }
+
     public void setstationtime(int stationtime){
         this.stationtime = stationtime;
-    
     }
 
     public void setinterchangetime(int interchangetime){
@@ -36,17 +43,21 @@ public class main {
     public void setpromotioncost(int promotioncost){
         this.promotioncost = promotioncost;
     }
-
+    /**load all of the connected lines and stations to the Graph Structure using AdjacentMapGraph
+     * using java.io.file
+     * @param connectionPATH // the Path of the all connection of the Railway
+     */
     public void loadConnections(String connectionPATH) {
         try (BufferedReader br = new BufferedReader(new FileReader(connectionPATH))) {
             String line;
             br.readLine(); // Skip header line
 
+            //read the line and skip the comma and place in 3 variable
             while ((line = br.readLine()) != null) {
                 if (line.trim().startsWith("#") || line.trim().isEmpty()) {
                     continue;
                 }
-
+                
                 String[] values = line.split(",");
                 if (values.length < 3) {
                     System.err.println("Skipping malformed line: " + line);
@@ -129,7 +140,7 @@ public class main {
             for (Edge<String> e : railwayGraph.outgoingEdges(u)) {
                 Vertex<String> v = railwayGraph.opposite(u, e);
 
-                // Correctly define the cost (weight) of traversing the edge
+                // define the weight between interchange and regular
                 int weight = e.getElement().equals("Interchange") ? interchangetime : stationtime;
 
                 // Add a large penalty if the station is under maintenance
@@ -148,7 +159,7 @@ public class main {
                     dist.put(v, newDist);
                     predecessor.put(v, u);
 
-                    // Since SortedPQ doesn't have an updateKey, we re-insert.
+                    // re-insert. if PQ doesn't have key
                     // A more advanced PQ (like a heap) would be more efficient here.
                     Entry<Integer, Vertex<String>> newEntry = new Entry<>(newDist, v);
                     pq.insert(newEntry.getKey(), newEntry.getValue());
@@ -184,7 +195,11 @@ public class main {
             this.numberofStation = numberofStation;
         }
     }
-  
+    
+    /**this method calculate the total cost based on numberof the station and line that the train visited
+     * @param path // the List of the vertex(station) of the shortest path
+     * @return 
+     */
     public int Totalcost(List<Vertex<String>> path) {
         if (path == null || path.size() <= 1) {
             return 0;
@@ -243,33 +258,47 @@ public class main {
         }
         return totalcost;
     }
-
-    public int Totaltime(List<Vertex<String>> path){
-        int Totaltime = 0;
-        for(Vertex<String> station : path)
-            for(Edge<String> line : railwayGraph.incomingEdges(station)){
-                if(line.getElement() != "Interchange"){
-                    Totaltime+=stationtime;
-                }
-                else{
-                    Totaltime+=interchangetime;
-                }
-            }
-        return Totaltime;
-
+    /**
+     * this method calculated  the totalamout of estimated time of current station to destination station
+     * @param path
+     * @return
+     */
+    public int Totaltime(List<Vertex<String>> path) {
+        if (path == null || path.size() <= 1) {
+            return 0;
+        }
+        int totalTime = 0;
+        for (int i = 0; i < path.size() - 1; i++) {
+            Vertex<String> prev = path.get(i);
+            Vertex<String> next = path.get(i + 1);
+            Edge<String> edge = railwayGraph.getEdge(prev, next);
+            if (edge == null) continue; 
+            totalTime += edge.getElement().equals("Interchange") ? interchangetime : stationtime;
+        }
+        return totalTime;
     }
-
 
     public static void main(String[] args) {
         main bkkRailwayApp = new main();
+        List<String> MaintenanceStation = new ArrayList<>();
+        MaintenanceStation.add("Thung Song Hong");
+        MaintenanceStation.add("Bang Sue");
+        MaintenanceStation.add("11th Infantry Regiment");
+        MaintenanceStation.add("Itsaraphap");
+
+        bkkRailwayApp.addMaintenanceList(MaintenanceStation);
+
+
         // Use the relative path from the project root
         bkkRailwayApp.loadConnections("source/resource/connections.csv");
         System.out.println("Number of stations (vertices): " + bkkRailwayApp.railwayGraph.numVertices());
         System.out.println("Number of connections (edges): " + bkkRailwayApp.railwayGraph.numEdges());
 
         System.out.println("\n--- Finding Shortest Path ---");
-        String start = "Talang Bang Yai";
+
+        String start = "Min Buri";
         String end = "Kheha";
+
         List<Vertex<String>> path = bkkRailwayApp.findShortestPath(start, end);
 
         if (path != null) {
@@ -283,7 +312,7 @@ public class main {
             System.out.println();
             System.out.println("Total stops: " + (path.size() - 1));
             System.out.println("Total cost: " + bkkRailwayApp.Totalcost(path));
-            System.out.println("Total time: " + bkkRailwayApp.Totaltime(path));
+            System.out.println("Estimated Total time: " + bkkRailwayApp.Totaltime(path)/60 + " hour " + bkkRailwayApp.Totaltime(path)%60 + " minute");
         } else {
             System.out.println("No path found from " + start + " to " + end);
         }
