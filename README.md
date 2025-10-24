@@ -181,6 +181,3 @@ This section outlines the time complexity of key operations and data structures 
     *   **`insert(key, value)`**: `O(N)` where `N` is the number of elements currently in the priority queue. This is due to the linear scan required to find the correct insertion point in the underlying `DoublyLinkedList` to maintain sorted order.
     *   **`removeMin()`**: `O(1)`, as it simply removes the head element of the `DoublyLinkedList`.
     *   **`min()`**: `O(1)`.
-
-The choice of `DoublyLinkedList` for `SortedPQ` and the current implementation of `AdjacencyMapGraph` methods like `opposite` lead to a higher overall time complexity for Dijkstra's algorithm compared to implementations using more optimized data structures (e.g., binary heaps for priority queues and graph representations where edges directly reference their endpoints).
-```
