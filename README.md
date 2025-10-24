@@ -1,14 +1,22 @@
 # BKK Railway Pathfinding System
 
+**Author:** Phusin Inthanee 
+**Student ID:** 6701013610086
+
+---
+
+## Project Overview
+
 This project is a Java-based application that models the Bangkok railway network (including BTS, MRT, ARL, and other lines) as a graph. It implements Dijkstra's algorithm to find the optimal route between any two stations based on the shortest travel time, while also calculating the estimated fare and total time for the journey.
 
 ## Features
 
 *   **Graph-Based Network Model:** Represents the entire BKK railway system using a custom graph data structure (`AdjacencyMapGraph`).
 *   **CSV Data Loading:** Dynamically loads station and line connection data from a `connections.csv` file.
-*   **Shortest Path Calculation:** Implements Dijkstra's algorithm to find the route with the minimum travel time.
+*   **Optimal Pathfinding:** Implements Dijkstra's algorithm to find routes that minimize either total travel time or the number of line transfers.
 *   **Dynamic Weighting:** Considers different travel times for station-to-station travel vs. line interchanges.
-*   **Maintenance Handling:** Allows for specifying stations under maintenance, which are heavily penalized to be avoided in pathfinding.
+*   **Station Availability:** Checks if stations are valid or under maintenance, and suggests alternatives for typos.
+*   **Maintenance Handling:** Allows for specifying stations under maintenance, which can be excluded from routes.
 *   **Fare Calculation:** Calculates the total travel cost based on the lines used and the number of stops, including special promotional fares.
 *   **Time Estimation:** Provides an estimated total travel time for the calculated route.
 
@@ -24,13 +32,12 @@ This model is built by the `loadConnections` method, which parses the `source/re
 
 ### 2. Pathfinding Algorithm
 
-The `findShortestPath` method uses **Dijkstra's algorithm** to find the optimal route. The "cost" or "weight" for each path segment is determined by time:
+The project uses **Dijkstra's algorithm** to find the optimal route. Two weighting models are supported:
 
-*   A standard trip between two adjacent stations has a default time cost (e.g., 3 units).
-*   An interchange between lines at the same physical station has a higher time cost (e.g., 10 units).
-*   A station listed in the `MatainanceList` adds a massive penalty (10,000 units) to any route passing through it, effectively forcing the algorithm to find an alternative.
+1.  **Shortest Time (`findShortestPath`)**: The "cost" is purely travel time. A standard trip costs 3 time units, while an interchange costs 10 units. This model is best for finding the quickest possible route.
+2.  **Fewest Transfers (`findPathFewestTransfers`)**: The primary "cost" is the number of transfers, and the secondary cost is travel time. This is for users who prefer a more convenient journey with fewer line changes, even if it's slightly longer.
 
-The algorithm uses a custom-built `SortedPQ` (a Priority Queue implemented with a sorted Doubly Linked List) to always explore the path with the lowest accumulated time.
+The algorithm uses a **heap-based Priority Queue** to efficiently explore the path with the lowest accumulated cost at each step.
 
 ### 3. Cost and Time Calculation
 
@@ -43,8 +50,7 @@ Once the shortest path (a list of station vertices) is found:
 This project relies on several custom data structures built from the ground up:
 
 *   `GraphADT` / `AdjacencyMapGraph`: An adjacency map implementation of a graph.
-*   `PriorityQueue` / `SortedPQ`: A priority queue used for Dijkstra's algorithm.
-*   `DoublyLinkedList`: The underlying structure for the `SortedPQ`.
+*   `PriorityQueue` / `HeapPriorityQueue`: A min-heap based priority queue used for Dijkstra's algorithm.
 *   `Vertex` and `Edge` interfaces.
 
 ## Getting Started
@@ -57,7 +63,7 @@ This project relies on several custom data structures built from the ground up:
 
 1.  Compile and run the `source/main.java` file.
     ```bash
-    # Navigate to the project's root directory
+    # Navigate to the directory containing the 'source' folder
     javac -d . source/*.java
     java source.main
     ```
@@ -65,21 +71,41 @@ This project relies on several custom data structures built from the ground up:
 2.  The program will:
     *   Load the station data from `source/resource/connections.csv`.
     *   Set a predefined list of stations under maintenance.
-    *   Calculate the shortest path between a predefined `start` and `end` station (e.g., "Min Buri" to "Kheha").
+    *   Prompt you to enter a starting and destination station.
     *   Print the resulting path, total stops, total cost, and estimated time to the console.
 
 ### Example Output
 
+#### Query: 'Bang Wa' to 'Lat Phrao' (Minimize Time)
+```text
+Shortest path from Bang Wa to Lat Phrao:
+1. Bang Wa (Interchange)
+2. Phetkasem 48 (MRT Blue Line)
+3. Phasi Charoen (MRT Blue Line)
+4. Bang Phai (MRT Blue Line)
+5. Bang Khun Non (MRT Blue Line)
+6. Fai Chai (MRT Blue Line)
+7. Charan Sanitwong (MRT Blue Line)
+8. Bang Yi Khan (MRT Blue Line)
+9. Sirindhorn (MRT Blue Line)
+10. Bang Phlat (MRT Blue Line)
+11. Bang O (MRT Blue Line)
+12. Bang Pho (MRT Blue Line)
+13. Tao Poon (Interchange)
+14. Phahon Yothin (MRT Blue Line)
+Lat Phrao (Destination)
+Total stops: 14
+Total cost: 65
+Estimated Total time: 0 hour 59 minute
 ```
-Number of stations (vertices): 119
-Number of connections (edges): 135
 
---- Finding Shortest Path ---
-Shortest path from Min Buri to Kheha:
-Min Buri -> Min Buri Market -> ... -> Samrong -> ... -> Kheha
-Total stops: 39
-Total cost: 124
-Estimated Total time: 2 hour 21 minute
+#### Query: 'Lak Song' to 'Kheha' (Minimize Transfers)
+```text
+Route (minimized transfers) from Lak Song to Kheha:
+... (path details) ...
+Total stops: 34
+Total cost: 127
+Estimated Total time: 2 hour 1 minute
 ```
 
 ## Configuration

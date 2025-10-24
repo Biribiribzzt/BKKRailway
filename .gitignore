@@ -1,0 +1,5 @@
+# Ignore files and directories
+.idea/
+/out/
+*.class
+*.log

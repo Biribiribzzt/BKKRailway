@@ -1,77 +1,109 @@
 package source;
-import java.util.Iterator;
 
-public class SortedPQ<K ,V> implements PriorityQueue<K,V>{
-    private DoublyLinkedList<Entry<K,V>> list;
-    private java.util.Comparator<K> comparator;
+import java.util.ArrayList;
+import java.util.Comparator;
+
+/**
+ * A binary-heap based priority queue implementation.
+ * insert: O(log n), removeMin: O(log n), min: O(1)
+ */
+public class SortedPQ<K, V> implements PriorityQueue<K, V> {
+    private ArrayList<Entry<K, V>> heap;
+    private Comparator<K> comparator;
 
     public SortedPQ() {
-        list = new DoublyLinkedList<>();
-        comparator = new java.util.Comparator<K>() {
+        this.heap = new ArrayList<>();
+        this.comparator = new Comparator<K>() {
+            @SuppressWarnings("unchecked")
             @Override
             public int compare(K o1, K o2) {
                 if (o1 instanceof Comparable) {
                     return ((Comparable<K>) o1).compareTo(o2);
                 } else {
-                    throw new IllegalArgumentException("Key must be Comparable");
+                    throw new IllegalArgumentException("Key must be Comparable or a Comparator must be provided");
                 }
             }
         };
     }
 
-    public SortedPQ(java.util.Comparator<K> comp) {
-        list = new DoublyLinkedList<>();
-        comparator = comp;
+    public SortedPQ(Comparator<K> comp) {
+        this.heap = new ArrayList<>();
+        this.comparator = comp;
     }
 
     @Override
     public int size() {
-        return list.size();
+        return heap.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return list.isEmpty();
+        return heap.isEmpty();
+    }
+
+    private void checkKey(K key) {
+        if (key == null) throw new IllegalArgumentException("Key cannot be null");
     }
 
     @Override
-    public void insert(K key, V value) throws IllegalArgumentException {
+    public void insert(K key, V value) {
         checkKey(key);
-        Entry<K,V> newEntry = new Entry<>(key, value);
-        Iterator<Entry<K,V>> walk = list.iterator();
-        int index = 0;
-        int prevIndex = -1;
-        while (walk.hasNext()) {
-            Entry<K,V> entry = walk.next();
-            if (comparator.compare(key, entry.getKey()) < 0) {
-                if(index == 0){
-                    list.addFirst(newEntry);
-                    return;
-                }
-                list.addbetween(entry, index, prevIndex);
-
-
-            }
-            index++;
-            prevIndex++;
-        }
-        list.addLast(newEntry);
-    }
-
-    private void checkKey(K key) throws IllegalArgumentException {
-        if (key == null) {
-            throw new IllegalArgumentException("Key cannot be null");
-        }
+        Entry<K, V> entry = new Entry<>(key, value);
+        heap.add(entry);
+        upHeap(heap.size() - 1);
     }
 
     @Override
     public Entry<K, V> removeMin() {
-        return list.removeFirst();
+        if (heap.isEmpty()) return null;
+        Entry<K, V> min = heap.get(0);
+        Entry<K, V> last = heap.remove(heap.size() - 1);
+        if (!heap.isEmpty()) {
+            heap.set(0, last);
+            downHeap(0);
+        }
+        return min;
     }
 
     @Override
     public Entry<K, V> min() {
-        return list.getFirst();
+        return heap.isEmpty() ? null : heap.get(0);
     }
-     
+
+    private void upHeap(int idx) {
+        while (idx > 0) {
+            int parent = (idx - 1) / 2;
+            if (compare(heap.get(idx).getKey(), heap.get(parent).getKey()) >= 0) break;
+            swap(idx, parent);
+            idx = parent;
+        }
+    }
+
+    private void downHeap(int idx) {
+        int size = heap.size();
+        while (true) {
+            int left = 2 * idx + 1;
+            int right = 2 * idx + 2;
+            int smallest = idx;
+            if (left < size && compare(heap.get(left).getKey(), heap.get(smallest).getKey()) < 0) {
+                smallest = left;
+            }
+            if (right < size && compare(heap.get(right).getKey(), heap.get(smallest).getKey()) < 0) {
+                smallest = right;
+            }
+            if (smallest == idx) break;
+            swap(idx, smallest);
+            idx = smallest;
+        }
+    }
+
+    private int compare(K a, K b) {
+        return comparator.compare(a, b);
+    }
+
+    private void swap(int i, int j) {
+        Entry<K, V> tmp = heap.get(i);
+        heap.set(i, heap.get(j));
+        heap.set(j, tmp);
+    }
 }
