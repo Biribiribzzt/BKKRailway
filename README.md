@@ -152,7 +152,6 @@ This section outlines the time complexity of key operations and data structures 
                 *   `dist.get()`, `dist.put()`, `predecessor.put()`: `O(1)` on average for `HashMap`.
                 *   `MatainanceList.contains()`: `O(M)` for `ArrayList.contains()`.
                 *   `pq.insert()`: `O(V)` for the custom `SortedPQ` due to the linear scan required to maintain sorted order in the underlying `DoublyLinkedList`.
-    *   **Note**: A standard Dijkstra implementation with a binary heap would achieve `O(E log V)` or `O(E + V log V)`. The custom `SortedPQ` and `AdjacencyMapGraph`'s `opposite` method contribute to the higher complexity here.
 
 *   **`reconstructPath(Map<Vertex<String>, Vertex<String>> predecessor, ...)`**:
     *   **Time Complexity**: `O(P)`, where `P` is the length of the shortest path (at most `V`).
