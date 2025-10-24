@@ -128,7 +128,7 @@ public class main {
         }
 
         // Priority queue stores entries of <Distance, Vertex>
-        PriorityQueue<Integer, Vertex<String>> pq = new SortedPQ<>();
+        PriorityQueue<Integer, Vertex<String>> pq = new HeapPQ<>();
         // Maps to store distances, predecessors (for path reconstruction), and entries in the PQ
         Map<Vertex<String>, Integer> dist = new HashMap<>();
         Map<Vertex<String>, Vertex<String>> predecessor = new HashMap<>();
@@ -234,7 +234,7 @@ public class main {
             }
         }
 
-        PriorityQueue<DistancePair, Vertex<String>> pq = new SortedPQ<>();
+        PriorityQueue<DistancePair, Vertex<String>> pq = new HeapPQ<>();
         Map<Vertex<String>, DistancePair> dist = new HashMap<>();
         Map<Vertex<String>, Vertex<String>> predecessor = new HashMap<>();
 

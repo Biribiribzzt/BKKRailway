@@ -7,11 +7,11 @@ import java.util.Comparator;
  * A binary-heap based priority queue implementation.
  * insert: O(log n), removeMin: O(log n), min: O(1)
  */
-public class SortedPQ<K, V> implements PriorityQueue<K, V> {
+public class HeapPQ<K, V> implements PriorityQueue<K, V> {
     private ArrayList<Entry<K, V>> heap;
     private Comparator<K> comparator;
 
-    public SortedPQ() {
+    public HeapPQ() {
         this.heap = new ArrayList<>();
         this.comparator = new Comparator<K>() {
             @SuppressWarnings("unchecked")
@@ -26,7 +26,7 @@ public class SortedPQ<K, V> implements PriorityQueue<K, V> {
         };
     }
 
-    public SortedPQ(Comparator<K> comp) {
+    public HeapPQ(Comparator<K> comp) {
         this.heap = new ArrayList<>();
         this.comparator = comp;
     }
