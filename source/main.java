@@ -424,7 +424,7 @@ public class main {
         // Try to find exact match ignoring case
         String matchedKey = null;
         for (String key : stations.keySet()) {
-            if (key.equalsIgnoreCase(query)) {
+            if (key.equals(query)) {
                 matchedKey = key;
                 break;
             }
@@ -433,7 +433,7 @@ public class main {
         if (matchedKey != null) {
             // Check maintenance list (case-insensitive)
             for (String m : MatainanceList) {
-                if (m.equalsIgnoreCase(matchedKey)) {
+                if (m.equals(matchedKey)) {
                     System.out.println("Station '" + matchedKey + "' is currently unavailable (maintenance).");
                     return false;
                 }
